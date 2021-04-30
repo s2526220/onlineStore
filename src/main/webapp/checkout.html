@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+
+<script>
+var MyObj;
+var restServ = "http://localhost:8080/onlineStore_war/rest/cart"
+	var text="";
+	var x;
+	var xmlhttp = new XMLHttpRequest();
+	window.onload = function () {
+		var xmlhttpget = new XMLHttpRequest();
+		MyObj = JSON.parse(this.responseText);
+		text += "<table id=\"items-table\">";
+		for (x in MyObj) {
+			text += "<tr><td>" + MyObj[x].shortDescription + "</td><td>"
+					+ MyObj[x].cost + "</td><td>";
+		}
+		text += "</table>";
+		document.getElementById("items").innerHTML = text;
+		xmlhttpget.open("GET", restServ, true);
+		xmlhttpget.send();
+	}
+		xmlhttp.open("POST", "http://localhost:8080/onlineStore_war/checkout.html", true);
+		xmlhttp.send();
+</script>
+
+
+</head>
+
+<body>
+<H1>Cost statements </H1>
+
+	<div id="results">
+		<h2>Bought items</h2>
+		<div id="items">
+		</div>
+	</div>
+
+</body>
+</html>

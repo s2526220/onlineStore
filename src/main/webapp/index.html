@@ -1,0 +1,112 @@
+<!DOCTYPE HTML>
+<!-- Index page of the Online Book Store. -->
+
+<html lang=”en”>
+<head>
+<title>Online Book Store</title>
+<link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+</head>
+
+<body>
+    <h1>Online Book Store</h1>
+	<div id="wrapper">
+		<div id="query">
+			<p>Which book category are you interested in?</p>
+			<div>
+				<input id="search" type="text" onkeyup="loadBooks(event)" />
+				<input id="autocomplete" type="text" disabled="disabled" /> 
+			</div>
+		</div>
+
+		<div id="cart">
+			<p>Shopping cart</p>
+
+			<button onclick="location.href='checkout.html'">Checkout</button>
+		</div>
+	</div>
+
+	<div id="results">
+		<h2>Found items</h2>
+		<div id="items">
+
+		</div>
+	</div>
+
+
+<script>
+var myObject;
+var restServ = "http://localhost:8080/onlineStore_war/rest/";
+
+function loadBooks(e) {
+	var categories = ["kids", "tech"];
+	let search = document.getElementById("search");
+	let auto = document.getElementById("autocomplete");
+
+	val = search.value;
+	if (val === "") {
+		auto.value = "";
+		return;
+	}
+	new_val = val.toLowerCase();
+	for (i = 0; i <= categories.length; i++) {
+
+		if (categories[i].lastIndexOf(new_val, 0) === 0) {
+			if (e.keyCode === 39) {
+				search.value = categories[i];
+			}
+			str_rem = categories[i].substr(new_val.length, categories[i].length);
+			new_str = val + str_rem;
+			auto.value = new_str;
+			if (e.keyCode === 13) {
+				var txt = "";
+				var x;
+				var xmlhttp = new XMLHttpRequest();
+				xmlhttp.onreadystatechange = function () {
+					if (this.readyState === 4 && this.status === 200) {
+						myObject = JSON.parse(this.responseText);
+						txt += "<table id=\"items-table\">";
+						for (x in myObject) {
+							txt += "<tr><td>" + myObject[x].shortDescription + "</td><td>"
+									+ myObject[x].longDescription + "</td><td>" + myObject[x].cost + "</td><td>"
+									+ "<button id=\"" + myObject[x].itemID + "\" onclick =\"addToCart(myObject[" + x + "])\">Add to cart</button>" + "</td></tr>";
+						}
+						txt += "</table>";
+						document.getElementById("items").innerHTML = txt;
+					}
+				};
+				xmlhttp.open("GET", restServ + new_str, true);
+				xmlhttp.send();
+				search.value = "";
+				auto.value = "";
+			}
+			return;
+		}
+	}
+};
+function addToCart(item) {
+	var xmlhttpPost = new XMLHttpRequest();
+	xmlhttpPost.onreadystatechange = function () {
+		if (this.readyState === 4 && this.status === 204) {
+			var xmlhttp = new XMLHttpRequest();
+			xmlhttp.onreadystatechange = function () {
+				if (this.readyState === 4 && this.status === 200) {
+					document.getElementById("costs").innerHTML = "Total Costs =" + this.responseText + "Euros";
+				}
+			}
+			xmlhttp.open("GET", restServ + "cart/costs", true);
+			xmlhttp.send();
+		}
+	};
+		xmlhttpPost.open("POST", restServ + "cart", true);
+		xmlhttpPost.setRequestHeader("Content-type", "application/json");
+		var order = [{item, numItems: 1}];
+		xmlhttpPost.send(JSON.stringify(order));
+
+}
+
+</script>
+
+
+</body>
+</html>
